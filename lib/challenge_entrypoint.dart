@@ -33,6 +33,7 @@ class _ChallengeLoader extends StatefulWidget {
 
 class _ChallengeLoaderState extends State<_ChallengeLoader> {
   TargetAppConfig? _config;
+  int? _usageMinutesToday;
 
   @override
   void initState() {
@@ -47,6 +48,7 @@ class _ChallengeLoaderState extends State<_ChallengeLoader> {
 
     final targetPackage = await ChallengeChannel.getTargetPackage();
     await StatsRepository().incrementTriggered();
+    final usageMinutesToday = await ChallengeChannel.getTodayUsageMinutes();
 
     final matches = AppConfigRepository().getAll().where((c) => c.packageName == targetPackage);
     final config = matches.isEmpty ? null : matches.first;
@@ -54,6 +56,7 @@ class _ChallengeLoaderState extends State<_ChallengeLoader> {
     if (mounted) {
       setState(() {
         _config = config ?? TargetAppConfig(packageName: targetPackage, appName: targetPackage);
+        _usageMinutesToday = usageMinutesToday;
       });
     }
   }
@@ -66,13 +69,13 @@ class _ChallengeLoaderState extends State<_ChallengeLoader> {
     }
     switch (config.challengeType) {
       case ChallengeType.math:
-        return MathChallengeScreen(appConfig: config);
+        return MathChallengeScreen(appConfig: config, usageMinutesToday: _usageMinutesToday);
       case ChallengeType.puzzle:
-        return PuzzleChallengeScreen(appConfig: config);
+        return PuzzleChallengeScreen(appConfig: config, usageMinutesToday: _usageMinutesToday);
       case ChallengeType.action:
-        return ActionChallengeScreen(appConfig: config);
+        return ActionChallengeScreen(appConfig: config, usageMinutesToday: _usageMinutesToday);
       case ChallengeType.delay:
-        return DelayChallengeScreen(appConfig: config);
+        return DelayChallengeScreen(appConfig: config, usageMinutesToday: _usageMinutesToday);
     }
   }
 }

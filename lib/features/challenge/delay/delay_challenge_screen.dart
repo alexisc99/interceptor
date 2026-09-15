@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import '../../../core/platform/challenge_channel.dart';
 import '../../../core/storage/app_config_repository.dart';
 import '../../../core/storage/stats_repository.dart';
+import '../challenge_scaffold.dart';
 
 class DelayChallengeScreen extends StatefulWidget {
   final TargetAppConfig appConfig;
+  final int? usageMinutesToday;
 
-  const DelayChallengeScreen({super.key, required this.appConfig});
+  const DelayChallengeScreen({super.key, required this.appConfig, required this.usageMinutesToday});
 
   @override
   State<DelayChallengeScreen> createState() => _DelayChallengeScreenState();
@@ -52,39 +54,21 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
   @override
   Widget build(BuildContext context) {
     final canContinue = _remaining <= 0;
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(Icons.self_improvement, size: 56),
-                const SizedBox(height: 16),
-                Text(
-                  'Tu essaies d\'ouvrir ${widget.appConfig.appName}',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(_question, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 32),
-                FilledButton(
-                  onPressed: canContinue ? _continue : null,
-                  child: Text(canContinue ? 'Continuer' : 'Continuer ($_remaining)'),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => ChallengeChannel.onChallengeCancelled(),
-                  child: const Text('Annuler et rester ici'),
-                ),
-              ],
-            ),
+    return ChallengeScaffold(
+      icon: Icons.self_improvement,
+      appName: widget.appConfig.appName,
+      usageMinutesToday: widget.usageMinutesToday,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(_question, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 32),
+          FilledButton(
+            onPressed: canContinue ? _continue : null,
+            child: Text(canContinue ? 'Continuer' : 'Continuer ($_remaining)'),
           ),
-        ),
+        ],
       ),
     );
   }

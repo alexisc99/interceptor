@@ -26,4 +26,13 @@ class InterceptionChannel {
   static Future<void> openAccessibilitySettings() {
     return _channel.invokeMethod('openAccessibilitySettings');
   }
+
+  static Future<bool> hasUsageAccess() async {
+    final result = await _channel.invokeMethod<bool>('hasUsageAccess');
+    return result ?? false;
+  }
+
+  static Future<void> openUsageAccessSettings() {
+    return _channel.invokeMethod('openUsageAccessSettings');
+  }
 }

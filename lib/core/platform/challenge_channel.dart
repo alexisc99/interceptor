@@ -12,6 +12,12 @@ class ChallengeChannel {
     return result ?? '';
   }
 
+  /// Minutes of foreground usage for the target app today, or null if the
+  /// "Usage access" permission hasn't been granted.
+  static Future<int?> getTodayUsageMinutes() {
+    return _channel.invokeMethod<int>('getTodayUsageMinutes');
+  }
+
   static Future<void> onChallengeSolved() {
     return _channel.invokeMethod('onChallengeSolved');
   }

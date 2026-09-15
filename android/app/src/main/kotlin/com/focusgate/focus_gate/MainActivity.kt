@@ -36,6 +36,13 @@ class MainActivity : FlutterActivity() {
                         startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                         result.success(null)
                     }
+                    "hasUsageAccess" -> {
+                        result.success(UsageStatsHelper.hasAccess(this))
+                    }
+                    "openUsageAccessSettings" -> {
+                        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }

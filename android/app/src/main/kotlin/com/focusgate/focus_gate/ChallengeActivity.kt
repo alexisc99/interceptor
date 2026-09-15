@@ -34,6 +34,9 @@ class ChallengeActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "getTargetPackage" -> result.success(targetPackage)
+                    "getTodayUsageMinutes" -> {
+                        result.success(UsageStatsHelper.todayUsageMinutes(this, targetPackage)?.toInt())
+                    }
                     "onChallengeSolved" -> {
                         onChallengeSolved()
                         result.success(null)

@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       return ListTile(
                         leading: const Icon(Icons.apps),
                         title: Text(config.appName),
-                        subtitle: Text('Défi : calcul mental · grâce ${config.graceMinutes} min'),
+                        subtitle: Text('Défi : ${config.challengeType.label} · grâce ${config.graceMinutes} min'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
                           await Navigator.of(context).push(

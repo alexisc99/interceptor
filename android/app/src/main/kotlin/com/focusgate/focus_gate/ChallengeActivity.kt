@@ -39,7 +39,7 @@ class ChallengeActivity : FlutterActivity() {
                         result.success(null)
                     }
                     "onChallengeCancelled" -> {
-                        finish()
+                        onChallengeCancelled()
                         result.success(null)
                     }
                     else -> result.notImplemented()
@@ -61,6 +61,18 @@ class ChallengeActivity : FlutterActivity() {
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(launchIntent)
         }
+        finish()
+    }
+
+    private fun onChallengeCancelled() {
+        // Just finishing would reveal the target app's own (already-created)
+        // window right underneath, which immediately re-triggers us. Go home
+        // instead so "cancel" actually leaves the target app.
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(homeIntent)
         finish()
     }
 

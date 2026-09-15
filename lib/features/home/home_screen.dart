@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final total = statsByPackage.values.fold(const AppStats(), (sum, s) => sum + s);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Focus Gate')),
+      appBar: AppBar(title: const Text('Interceptor')),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
         label: const Text('Ajouter une app'),

@@ -33,7 +33,7 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      "Focus Gate insère un petit défi avant l'ouverture des apps que tu choisis, "
+                      "Interceptor insère un petit défi avant l'ouverture des apps que tu choisis, "
                       "pour casser le réflexe d'ouverture automatique. Deux réglages Android sont "
                       "nécessaires — ils s'activent en un tap, tu reviens automatiquement ici après.",
                       textAlign: TextAlign.center,
@@ -49,7 +49,7 @@ class OnboardingScreen extends StatelessWidget {
                       onPressed: () =>
                           InterceptionChannel.openAccessibilitySettings(),
                       steps: const [
-                        'Cherche "focus_gate" dans la liste (parfois sous "Applications installées" ou "Services téléchargés")',
+                        'Cherche "Interceptor" dans la liste (parfois sous "Applications installées" ou "Services téléchargés")',
                         'Ouvre-le et active l\'interrupteur en haut',
                         'Confirme en appuyant sur "Autoriser" dans la fenêtre qui apparaît',
                         'Reviens ici avec la flèche retour — c\'est automatique, pas besoin de rien taper',
@@ -69,7 +69,7 @@ class OnboardingScreen extends StatelessWidget {
                       steps: hasUsageAccess
                           ? null
                           : const [
-                              'Cherche "focus_gate" dans la liste des apps',
+                              'Cherche "Interceptor" dans la liste des apps',
                               'Active l\'interrupteur à côté de son nom',
                             ],
                     ),

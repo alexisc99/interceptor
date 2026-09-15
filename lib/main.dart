@@ -29,7 +29,7 @@ class FocusGateApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Focus Gate',
+      title: 'Interceptor',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
       home: const OnboardingGate(),

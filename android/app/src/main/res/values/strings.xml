@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="accessibility_service_description">Focus Gate observe quelle application passe au premier plan afin d\'afficher un défi avant l\'ouverture des applications que tu as choisi de surveiller. Aucune donnée n\'est envoyée en dehors de ton téléphone.</string>
+    <string name="accessibility_service_description">Interceptor observe quelle application passe au premier plan afin d\'afficher un défi avant l\'ouverture des applications que tu as choisi de surveiller. Aucune donnée n\'est envoyée en dehors de ton téléphone.</string>
 </resources>

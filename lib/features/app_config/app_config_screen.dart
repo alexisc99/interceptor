@@ -244,11 +244,11 @@ class _UsageComparisonCardState extends State<_UsageComparisonCard> {
               )
             else if (after == null)
               Text(
-                'Avant Focus Gate : ${_format(before)}/jour\n'
+                'Avant Interceptor : ${_format(before)}/jour\n'
                 "Pas encore assez de recul depuis l'ajout (${_daysSinceAdded}j) pour comparer.",
               )
             else ...[
-              Text('Avant Focus Gate : ${_format(before)}/jour'),
+              Text('Avant Interceptor : ${_format(before)}/jour'),
               Text('Depuis ($_daysSinceAdded j) : ${_format(after)}/jour'),
               const SizedBox(height: 4),
               Text(

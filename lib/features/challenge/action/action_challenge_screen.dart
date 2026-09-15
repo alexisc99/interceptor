@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/platform/challenge_channel.dart';
 import '../../../core/storage/app_config_repository.dart';
@@ -19,27 +18,11 @@ class ActionChallengeScreen extends StatefulWidget {
 }
 
 class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
-  bool? _useSteps;
-
-  @override
-  void initState() {
-    super.initState();
-    _decideVariant();
-  }
-
-  Future<void> _decideVariant() async {
-    final wantsSteps = Random().nextBool();
-    final granted = wantsSteps && await Permission.activityRecognition.isGranted;
-    if (mounted) setState(() => _useSteps = granted);
-  }
+  late final bool _useSteps = Random().nextBool();
 
   Future<void> _onSolved() async {
     await StatsRepository().incrementSolved();
     await ChallengeChannel.onChallengeSolved();
-  }
-
-  void _fallbackToShake() {
-    if (mounted) setState(() => _useSteps = false);
   }
 
   @override
@@ -62,12 +45,7 @@ class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                if (_useSteps == null)
-                  const Center(child: CircularProgressIndicator())
-                else if (_useSteps == true)
-                  StepsScreen(onSolved: _onSolved, onUnavailable: _fallbackToShake)
-                else
-                  ShakeScreen(onSolved: _onSolved),
+                _useSteps ? StepsScreen(onSolved: _onSolved) : ShakeScreen(onSolved: _onSolved),
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => ChallengeChannel.onChallengeCancelled(),

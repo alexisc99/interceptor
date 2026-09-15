@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/platform/interception_channel.dart';
 import '../../core/storage/app_config_repository.dart';
@@ -19,12 +18,6 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
   late ChallengeType _challengeType = widget.config.challengeType;
 
   Future<void> _save() async {
-    if (_challengeType == ChallengeType.action) {
-      // Best-effort: only needed for the "steps" variant of this challenge.
-      // If denied, the challenge falls back to the shake variant.
-      await Permission.activityRecognition.request();
-    }
-
     final updated = widget.config.copyWith(
       graceMinutes: _graceMinutes,
       challengeType: _challengeType,

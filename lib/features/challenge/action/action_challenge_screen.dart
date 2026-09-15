@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/platform/challenge_channel.dart';
 import '../../../core/storage/app_config_repository.dart';
 import '../../../core/storage/stats_repository.dart';
 import '../challenge_scaffold.dart';
@@ -21,10 +20,11 @@ class ActionChallengeScreen extends StatefulWidget {
 
 class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
   late final bool _useSteps = Random().nextBool();
+  bool _solved = false;
 
   Future<void> _onSolved() async {
     await StatsRepository().incrementSolved(widget.appConfig.packageName);
-    await ChallengeChannel.onChallengeSolved();
+    setState(() => _solved = true);
   }
 
   @override
@@ -34,6 +34,7 @@ class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
       packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
+      solved: _solved,
       child: _useSteps ? StepsScreen(onSolved: _onSolved) : ShakeScreen(onSolved: _onSolved),
     );
   }

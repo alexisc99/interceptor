@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/platform/challenge_channel.dart';
 import '../../../core/storage/app_config_repository.dart';
 import '../../../core/storage/stats_repository.dart';
 import '../challenge_scaffold.dart';
@@ -26,6 +25,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
   late int _b;
   late String _operator;
   bool _wasWrong = false;
+  bool _solved = false;
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
     final answer = int.tryParse(_controller.text.trim());
     if (answer == _expected) {
       await _stats.incrementSolved(widget.appConfig.packageName);
-      await ChallengeChannel.onChallengeSolved();
+      setState(() => _solved = true);
     } else {
       setState(() {
         _wasWrong = true;
@@ -73,6 +73,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
       packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
+      solved: _solved,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

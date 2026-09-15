@@ -6,12 +6,17 @@ import '../../core/storage/stats_repository.dart';
 /// Shared layout for every challenge screen: icon, "trying to open X"
 /// header, optional today's-usage line, the challenge-specific content,
 /// and the cancel button.
+///
+/// Solving the challenge doesn't launch the app by itself — [solved] swaps
+/// the content for an explicit "Ouvrir" button. That extra deliberate tap is
+/// one more moment for the user to reconsider before the app actually opens.
 class ChallengeScaffold extends StatelessWidget {
   final IconData icon;
   final String packageName;
   final String appName;
   final int? usageMinutesToday;
   final Widget child;
+  final bool solved;
 
   const ChallengeScaffold({
     super.key,
@@ -20,6 +25,7 @@ class ChallengeScaffold extends StatelessWidget {
     required this.appName,
     required this.usageMinutesToday,
     required this.child,
+    this.solved = false,
   });
 
   Future<void> _cancel() async {
@@ -40,10 +46,14 @@ class ChallengeScaffold extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(icon, size: 56),
+                Icon(
+                  solved ? Icons.check_circle : icon,
+                  size: 56,
+                  color: solved ? Colors.green : null,
+                ),
                 const SizedBox(height: 16),
                 Text(
-                  'Tu essaies d\'ouvrir $appName',
+                  solved ? 'Défi réussi !' : 'Tu essaies d\'ouvrir $appName',
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
@@ -59,7 +69,13 @@ class ChallengeScaffold extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 24),
-                child,
+                if (solved)
+                  FilledButton(
+                    onPressed: () => ChallengeChannel.onChallengeSolved(),
+                    child: Text('Ouvrir $appName'),
+                  )
+                else
+                  child,
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: _cancel,

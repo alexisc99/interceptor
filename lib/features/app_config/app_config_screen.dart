@@ -24,7 +24,10 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
       challengeType: _challengeType,
     );
     await _repository.upsert(updated);
-    await InterceptionChannel.setGraceMinutes(updated.packageName, _graceMinutes);
+    await InterceptionChannel.setGraceMinutes(
+      updated.packageName,
+      _graceMinutes,
+    );
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -39,51 +42,57 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.config.appName)),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          _StatsSummary(packageName: widget.config.packageName),
-          const SizedBox(height: 12),
-          _UsageComparisonCard(config: widget.config),
-          const SizedBox(height: 24),
-          const Text('Défi', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          RadioGroup<ChallengeType>(
-            groupValue: _challengeType,
-            onChanged: (value) => setState(() => _challengeType = value!),
-            child: Column(
-              children: ChallengeType.values
-                  .map(
-                    (type) => RadioListTile<ChallengeType>(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(type.label),
-                      subtitle: Text(_descriptionFor(type)),
-                      value: type,
-                    ),
-                  )
-                  .toList(),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            _StatsSummary(packageName: widget.config.packageName),
+            const SizedBox(height: 12),
+            _UsageComparisonCard(config: widget.config),
+            const SizedBox(height: 24),
+            const Text('Défi', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            RadioGroup<ChallengeType>(
+              groupValue: _challengeType,
+              onChanged: (value) => setState(() => _challengeType = value!),
+              child: Column(
+                children: ChallengeType.values
+                    .map(
+                      (type) => RadioListTile<ChallengeType>(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(type.label),
+                        subtitle: Text(_descriptionFor(type)),
+                        value: type,
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Durée de grâce après un défi résolu', style: TextStyle(fontWeight: FontWeight.bold)),
-          Text('$_graceMinutes minutes'),
-          Slider(
-            value: _graceMinutes.toDouble(),
-            min: 1,
-            max: 60,
-            divisions: 59,
-            label: '$_graceMinutes min',
-            onChanged: (value) => setState(() => _graceMinutes = value.round()),
-          ),
-          const SizedBox(height: 24),
-          FilledButton(onPressed: _save, child: const Text('Enregistrer')),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: _delete,
-            style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Retirer cette app'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            const Text(
+              'Durée de grâce après un défi résolu',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text('$_graceMinutes minutes'),
+            Slider(
+              value: _graceMinutes.toDouble(),
+              min: 1,
+              max: 60,
+              divisions: 59,
+              label: '$_graceMinutes min',
+              onChanged: (value) =>
+                  setState(() => _graceMinutes = value.round()),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(onPressed: _save, child: const Text('Enregistrer')),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: _delete,
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Retirer cette app'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -115,7 +124,11 @@ class _StatsSummary extends StatelessWidget {
       children: [
         _Stat(label: 'Affichés', value: stats.triggered),
         _Stat(label: 'Résolus', value: stats.solved),
-        _Stat(label: 'Dissuasions', value: stats.cancelled, color: Colors.green),
+        _Stat(
+          label: 'Dissuasions',
+          value: stats.cancelled,
+          color: Colors.green,
+        ),
       ],
     );
   }
@@ -132,7 +145,11 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('$value', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: color)),
+        Text(
+          '$value',
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(color: color),
+        ),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
@@ -181,13 +198,19 @@ class _UsageComparisonCardState extends State<_UsageComparisonCard> {
       addedAt,
     );
     final afterMinutes = daysSinceAdded >= 1
-        ? await InterceptionChannel.getUsageMinutesInRange(widget.config.packageName, addedAt, now)
+        ? await InterceptionChannel.getUsageMinutesInRange(
+            widget.config.packageName,
+            addedAt,
+            now,
+          )
         : null;
 
     if (!mounted) return;
     setState(() {
       _hasAccess = true;
-      _beforePerDayMinutes = beforeMinutes == null ? null : (beforeMinutes / 7).round();
+      _beforePerDayMinutes = beforeMinutes == null
+          ? null
+          : (beforeMinutes / 7).round();
       _afterPerDayMinutes = (afterMinutes != null && daysSinceAdded >= 1)
           ? (afterMinutes / daysSinceAdded).round()
           : null;
@@ -210,10 +233,15 @@ class _UsageComparisonCardState extends State<_UsageComparisonCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Temps passé par jour', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              'Temps passé par jour',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             if (before == null)
-              const Text("Pas de données pour la semaine avant l'ajout de cette app.")
+              const Text(
+                "Pas de données pour la semaine avant l'ajout de cette app.",
+              )
             else if (after == null)
               Text(
                 'Avant Focus Gate : ${_format(before)}/jour\n'

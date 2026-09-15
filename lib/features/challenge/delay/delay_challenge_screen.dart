@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/platform/challenge_channel.dart';
 import '../../../core/storage/app_config_repository.dart';
 import '../../../core/storage/stats_repository.dart';
 import '../challenge_scaffold.dart';
@@ -30,6 +29,7 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
   late final String _question = _questions[Random().nextInt(_questions.length)];
   int _remaining = _duration;
   Timer? _timer;
+  bool _solved = false;
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
 
   Future<void> _continue() async {
     await StatsRepository().incrementSolved(widget.appConfig.packageName);
-    await ChallengeChannel.onChallengeSolved();
+    setState(() => _solved = true);
   }
 
   @override
@@ -59,6 +59,7 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
       packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
+      solved: _solved,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

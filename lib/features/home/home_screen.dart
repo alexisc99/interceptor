@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:installed_apps/installed_apps.dart';
 
 import '../../core/platform/interception_channel.dart';
 import '../../core/storage/app_config_repository.dart';
@@ -17,12 +20,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _repository = AppConfigRepository();
   final _stats = StatsRepository();
   bool _hasUsageAccess = true;
+  final Map<String, Uint8List?> _icons = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshUsageAccess();
+    _loadIcons();
   }
 
   @override
@@ -41,7 +46,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) setState(() => _hasUsageAccess = granted);
   }
 
-  void _refresh() => setState(() {});
+  Future<void> _loadIcons() async {
+    final missing = _repository.getAll().where((t) => !_icons.containsKey(t.packageName)).toList();
+    if (missing.isEmpty) return;
+
+    final results = await Future.wait(missing.map((t) => InstalledApps.getAppInfo(t.packageName)));
+    if (!mounted) return;
+    setState(() {
+      for (var i = 0; i < missing.length; i++) {
+        _icons[missing[i].packageName] = results[i]?.icon;
+      }
+    });
+  }
+
+  void _refresh() {
+    setState(() {});
+    _loadIcons();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +95,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     itemCount: targets.length,
                     itemBuilder: (context, index) {
                       final config = targets[index];
+                      final icon = _icons[config.packageName];
                       return ListTile(
-                        leading: const Icon(Icons.apps),
+                        leading: icon != null ? CircleAvatar(backgroundImage: MemoryImage(icon)) : const Icon(Icons.apps),
                         title: Text(config.appName),
                         subtitle: Text('Défi : ${config.challengeType.label} · grâce ${config.graceMinutes} min'),
                         trailing: const Icon(Icons.chevron_right),

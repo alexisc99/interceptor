@@ -35,19 +35,27 @@ class TargetAppConfig {
   final int graceMinutes;
   final ChallengeType challengeType;
 
-  const TargetAppConfig({
+  /// When this app was first targeted. Used as the reference point for the
+  /// "time saved" comparison (usage the week before vs the weeks since).
+  final DateTime addedAt;
+
+  TargetAppConfig({
     required this.packageName,
     required this.appName,
     this.graceMinutes = 5,
     this.challengeType = ChallengeType.math,
-  });
+    DateTime? addedAt,
+  }) : addedAt = addedAt ?? DateTime.now();
 
+  /// Note: addedAt is deliberately not editable — it always reflects when
+  /// the app was first added, regardless of later config changes.
   TargetAppConfig copyWith({int? graceMinutes, ChallengeType? challengeType}) {
     return TargetAppConfig(
       packageName: packageName,
       appName: appName,
       graceMinutes: graceMinutes ?? this.graceMinutes,
       challengeType: challengeType ?? this.challengeType,
+      addedAt: addedAt,
     );
   }
 
@@ -55,14 +63,17 @@ class TargetAppConfig {
         'appName': appName,
         'graceMinutes': graceMinutes,
         'challengeType': challengeType.storageValue,
+        'addedAt': addedAt.millisecondsSinceEpoch,
       };
 
   factory TargetAppConfig.fromMap(String packageName, Map map) {
+    final addedAtMs = map['addedAt'] as int?;
     return TargetAppConfig(
       packageName: packageName,
       appName: map['appName'] as String? ?? packageName,
       graceMinutes: map['graceMinutes'] as int? ?? 5,
       challengeType: ChallengeType.fromStorage(map['challengeType'] as String?),
+      addedAt: addedAtMs != null ? DateTime.fromMillisecondsSinceEpoch(addedAtMs) : DateTime.now(),
     );
   }
 }

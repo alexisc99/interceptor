@@ -46,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final targets = _repository.getAll();
+    final statsByPackage = _stats.getAll();
+    final total = statsByPackage.values.fold(const AppStats(), (sum, s) => sum + s);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Focus Gate')),
@@ -61,7 +63,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
-          _StatsBar(triggered: _stats.triggeredCount, solved: _stats.solvedCount),
+          _StatsBar(total: total),
+          if (targets.isNotEmpty) _ChallengeTypeBreakdown(targets: targets, statsByPackage: statsByPackage),
           const Divider(height: 1),
           if (!_hasUsageAccess) _UsageAccessBanner(onGranted: _refreshUsageAccess),
           Expanded(
@@ -118,10 +121,9 @@ class _UsageAccessBanner extends StatelessWidget {
 }
 
 class _StatsBar extends StatelessWidget {
-  final int triggered;
-  final int solved;
+  final AppStats total;
 
-  const _StatsBar({required this.triggered, required this.solved});
+  const _StatsBar({required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -130,8 +132,9 @@ class _StatsBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _StatChip(label: 'Défis affichés', value: triggered),
-          _StatChip(label: 'Défis résolus', value: solved),
+          _StatChip(label: 'Défis affichés', value: total.triggered),
+          _StatChip(label: 'Défis résolus', value: total.solved),
+          _StatChip(label: 'Dissuasions', value: total.cancelled, color: Colors.green),
         ],
       ),
     );
@@ -141,16 +144,59 @@ class _StatsBar extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final String label;
   final int value;
+  final Color? color;
 
-  const _StatChip({required this.label, required this.value});
+  const _StatChip({required this.label, required this.value, this.color});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('$value', style: Theme.of(context).textTheme.headlineMedium),
+        Text('$value', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: color)),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+/// Which challenge type dissuades the most, aggregated across every app
+/// currently configured with that type (a config change re-buckets its past
+/// counts under the new type — this is a live snapshot, not a historical log).
+class _ChallengeTypeBreakdown extends StatelessWidget {
+  final List<TargetAppConfig> targets;
+  final Map<String, AppStats> statsByPackage;
+
+  const _ChallengeTypeBreakdown({required this.targets, required this.statsByPackage});
+
+  @override
+  Widget build(BuildContext context) {
+    final byType = <ChallengeType, AppStats>{};
+    for (final config in targets) {
+      final stats = statsByPackage[config.packageName] ?? const AppStats();
+      byType[config.challengeType] = (byType[config.challengeType] ?? const AppStats()) + stats;
+    }
+
+    final entries = byType.entries.where((e) => e.value.triggered > 0).toList()
+      ..sort((a, b) => (b.value.dissuasionRate ?? 0).compareTo(a.value.dissuasionRate ?? 0));
+
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Dissuasion par type de défi', style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 4),
+          ...entries.map((e) {
+            final rate = ((e.value.dissuasionRate ?? 0) * 100).round();
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text('${e.key.label} : $rate% (${e.value.triggered} déclenchements)'),
+            );
+          }),
+        ],
+      ),
     );
   }
 }

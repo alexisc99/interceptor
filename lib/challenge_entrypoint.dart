@@ -47,7 +47,7 @@ class _ChallengeLoaderState extends State<_ChallengeLoader> {
     await StatsRepository.init();
 
     final targetPackage = await ChallengeChannel.getTargetPackage();
-    await StatsRepository().incrementTriggered();
+    await StatsRepository().incrementTriggered(targetPackage);
     final usageMinutesToday = await ChallengeChannel.getTodayUsageMinutes();
 
     final matches = AppConfigRepository().getAll().where((c) => c.packageName == targetPackage);

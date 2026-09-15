@@ -25,18 +25,22 @@ object UsageStatsHelper {
 
     /** Minutes of foreground usage for [packageName] since midnight, or null without access. */
     fun todayUsageMinutes(context: Context, packageName: String): Long? {
-        if (!hasAccess(context)) return null
-
-        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val startOfDay = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-        val now = System.currentTimeMillis()
+        return usageMinutesInRange(context, packageName, startOfDay, System.currentTimeMillis())
+    }
 
-        val stats = usageStatsManager.queryAndAggregateUsageStats(startOfDay, now)
+    /** Minutes of foreground usage for [packageName] within [startMillis, endMillis), or null without access. */
+    fun usageMinutesInRange(context: Context, packageName: String, startMillis: Long, endMillis: Long): Long? {
+        if (!hasAccess(context)) return null
+        if (endMillis <= startMillis) return 0L
+
+        val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val stats = usageStatsManager.queryAndAggregateUsageStats(startMillis, endMillis)
         val totalMs = stats[packageName]?.totalTimeInForeground ?: 0L
         return totalMs / 60_000L
     }

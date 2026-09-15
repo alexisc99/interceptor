@@ -23,7 +23,7 @@ class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
   late final bool _useSteps = Random().nextBool();
 
   Future<void> _onSolved() async {
-    await StatsRepository().incrementSolved();
+    await StatsRepository().incrementSolved(widget.appConfig.packageName);
     await ChallengeChannel.onChallengeSolved();
   }
 
@@ -31,6 +31,7 @@ class _ActionChallengeScreenState extends State<ActionChallengeScreen> {
   Widget build(BuildContext context) {
     return ChallengeScaffold(
       icon: Icons.directions_walk,
+      packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
       child: _useSteps ? StepsScreen(onSolved: _onSolved) : ShakeScreen(onSolved: _onSolved),

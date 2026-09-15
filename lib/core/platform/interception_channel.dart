@@ -35,4 +35,14 @@ class InterceptionChannel {
   static Future<void> openUsageAccessSettings() {
     return _channel.invokeMethod('openUsageAccessSettings');
   }
+
+  /// Minutes of foreground usage for [packageName] within [start, end), or
+  /// null if usage access hasn't been granted.
+  static Future<int?> getUsageMinutesInRange(String packageName, DateTime start, DateTime end) {
+    return _channel.invokeMethod<int>('getUsageMinutesInRange', {
+      'package': packageName,
+      'start': start.millisecondsSinceEpoch,
+      'end': end.millisecondsSinceEpoch,
+    });
+  }
 }

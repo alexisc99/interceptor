@@ -23,7 +23,7 @@ class _PuzzleChallengeScreenState extends State<PuzzleChallengeScreen> {
   late final bool _useSchulte = Random().nextBool();
 
   Future<void> _onSolved() async {
-    await StatsRepository().incrementSolved();
+    await StatsRepository().incrementSolved(widget.appConfig.packageName);
     await ChallengeChannel.onChallengeSolved();
   }
 
@@ -31,6 +31,7 @@ class _PuzzleChallengeScreenState extends State<PuzzleChallengeScreen> {
   Widget build(BuildContext context) {
     return ChallengeScaffold(
       icon: Icons.extension,
+      packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
       child: _useSchulte ? SchulteGridScreen(onSolved: _onSolved) : SimonScreen(onSolved: _onSolved),

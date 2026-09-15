@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/platform/interception_channel.dart';
+import '../../core/storage/stats_repository.dart';
 import '../home/home_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -39,6 +40,9 @@ class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObse
   }
 
   Future<void> _refresh() async {
+    // The challenge overlay writes stats from its own Flutter engine; reload
+    // so this engine's Home screen reflects them as soon as we come back.
+    await StatsRepository.reload();
     final results = await Future.wait([
       InterceptionChannel.isAccessibilityServiceEnabled(),
       InterceptionChannel.hasUsageAccess(),

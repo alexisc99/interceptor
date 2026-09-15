@@ -45,6 +45,14 @@ class MainActivity : FlutterActivity() {
                         startActivity(intent)
                         result.success(null)
                     }
+                    "getUsageMinutesInRange" -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val args = call.arguments as Map<String, Any>
+                        val pkg = args["package"] as String
+                        val start = (args["start"] as Number).toLong()
+                        val end = (args["end"] as Number).toLong()
+                        result.success(UsageStatsHelper.usageMinutesInRange(this, pkg, start, end)?.toInt())
+                    }
                     else -> result.notImplemented()
                 }
             }

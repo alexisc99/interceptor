@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../core/platform/challenge_channel.dart';
+import '../../core/storage/stats_repository.dart';
 
 /// Shared layout for every challenge screen: icon, "trying to open X"
 /// header, optional today's-usage line, the challenge-specific content,
 /// and the cancel button.
 class ChallengeScaffold extends StatelessWidget {
   final IconData icon;
+  final String packageName;
   final String appName;
   final int? usageMinutesToday;
   final Widget child;
@@ -14,10 +16,17 @@ class ChallengeScaffold extends StatelessWidget {
   const ChallengeScaffold({
     super.key,
     required this.icon,
+    required this.packageName,
     required this.appName,
     required this.usageMinutesToday,
     required this.child,
   });
+
+  Future<void> _cancel() async {
+    // The user gave up trying to open the app: the friction worked.
+    await StatsRepository().incrementCancelled(packageName);
+    await ChallengeChannel.onChallengeCancelled();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +62,7 @@ class ChallengeScaffold extends StatelessWidget {
                 child,
                 const SizedBox(height: 24),
                 TextButton(
-                  onPressed: () => ChallengeChannel.onChallengeCancelled(),
+                  onPressed: _cancel,
                   child: const Text('Annuler et rester ici'),
                 ),
               ],

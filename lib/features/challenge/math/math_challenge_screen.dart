@@ -50,7 +50,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
   Future<void> _submit() async {
     final answer = int.tryParse(_controller.text.trim());
     if (answer == _expected) {
-      await _stats.incrementSolved();
+      await _stats.incrementSolved(widget.appConfig.packageName);
       await ChallengeChannel.onChallengeSolved();
     } else {
       setState(() {
@@ -70,6 +70,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
   Widget build(BuildContext context) {
     return ChallengeScaffold(
       icon: Icons.lock_clock,
+      packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
       child: Column(

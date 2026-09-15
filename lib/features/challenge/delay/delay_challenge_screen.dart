@@ -47,7 +47,7 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
   }
 
   Future<void> _continue() async {
-    await StatsRepository().incrementSolved();
+    await StatsRepository().incrementSolved(widget.appConfig.packageName);
     await ChallengeChannel.onChallengeSolved();
   }
 
@@ -56,6 +56,7 @@ class _DelayChallengeScreenState extends State<DelayChallengeScreen> {
     final canContinue = _remaining <= 0;
     return ChallengeScaffold(
       icon: Icons.self_improvement,
+      packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
       usageMinutesToday: widget.usageMinutesToday,
       child: Column(

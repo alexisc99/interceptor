@@ -40,7 +40,9 @@ class MainActivity : FlutterActivity() {
                         result.success(UsageStatsHelper.hasAccess(this))
                     }
                     "openUsageAccessSettings" -> {
-                        startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                            .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                        startActivity(intent)
                         result.success(null)
                     }
                     else -> result.notImplemented()

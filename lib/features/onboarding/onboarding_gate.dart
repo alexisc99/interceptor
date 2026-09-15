@@ -4,9 +4,11 @@ import '../../core/platform/interception_channel.dart';
 import '../home/home_screen.dart';
 import 'onboarding_screen.dart';
 
-/// Shows the onboarding flow until the accessibility service is enabled,
-/// then hands off to the home screen. Re-checks whenever the app resumes,
-/// since enabling the service happens in the system Settings app.
+/// Shows the onboarding flow until the accessibility service is enabled
+/// (the one permission the app can't function without), then hands off to
+/// the home screen. Usage access is offered on the same screen but isn't
+/// required to continue. Re-checks whenever the app resumes, since granting
+/// either permission happens in the system Settings app.
 class OnboardingGate extends StatefulWidget {
   const OnboardingGate({super.key});
 
@@ -15,7 +17,8 @@ class OnboardingGate extends StatefulWidget {
 }
 
 class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObserver {
-  bool? _isEnabled;
+  bool? _isAccessibilityEnabled;
+  bool _hasUsageAccess = false;
 
   @override
   void initState() {
@@ -36,17 +39,26 @@ class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObse
   }
 
   Future<void> _refresh() async {
-    final enabled = await InterceptionChannel.isAccessibilityServiceEnabled();
-    if (mounted) setState(() => _isEnabled = enabled);
+    final results = await Future.wait([
+      InterceptionChannel.isAccessibilityServiceEnabled(),
+      InterceptionChannel.hasUsageAccess(),
+    ]);
+    if (mounted) {
+      setState(() {
+        _isAccessibilityEnabled = results[0];
+        _hasUsageAccess = results[1];
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isEnabled == null) {
+    final accessibilityEnabled = _isAccessibilityEnabled;
+    if (accessibilityEnabled == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    if (_isEnabled == false) {
-      return OnboardingScreen(onRefresh: _refresh);
+    if (accessibilityEnabled == false) {
+      return OnboardingScreen(hasUsageAccess: _hasUsageAccess, onRefresh: _refresh);
     }
     return const HomeScreen();
   }

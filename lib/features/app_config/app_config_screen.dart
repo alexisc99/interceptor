@@ -18,6 +18,28 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
   late int _graceMinutes = widget.config.graceMinutes;
   late ChallengeType _challengeType = widget.config.challengeType;
 
+  void _onChallengeTypeChanged(ChallengeType? value) {
+    if (value == null) return;
+    setState(() => _challengeType = value);
+
+    // A gentle nudge rather than a hard restriction (e.g. a 24h cooldown):
+    // the point is to catch someone about to swap to the easiest challenge
+    // in the heat of the moment, without adding real friction to a
+    // legitimate change (not everyone can shake their phone in public, etc).
+    if (value != widget.config.challengeType) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Rappel : le but est de te freiner, pas de choisir le défi "
+            "le plus facile à expédier.",
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   Future<void> _save() async {
     final updated = widget.config.copyWith(
       graceMinutes: _graceMinutes,
@@ -54,7 +76,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
             const SizedBox(height: 8),
             RadioGroup<ChallengeType>(
               groupValue: _challengeType,
-              onChanged: (value) => setState(() => _challengeType = value!),
+              onChanged: _onChallengeTypeChanged,
               child: Column(
                 children: ChallengeType.values
                     .map(

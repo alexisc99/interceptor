@@ -3,14 +3,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'challenge_entrypoint.dart';
 import 'core/storage/app_config_repository.dart';
+import 'core/storage/premium_repository.dart';
 import 'core/storage/stats_repository.dart';
 import 'features/onboarding/onboarding_gate.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await AppConfigRepository.init();
   await StatsRepository.init();
+  await PremiumRepository.init();
   runApp(const FocusGateApp());
 }
 
@@ -32,6 +35,8 @@ class FocusGateApp extends StatelessWidget {
       title: 'Interceptor',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: const OnboardingGate(),
     );
   }

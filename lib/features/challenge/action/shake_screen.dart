@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 class ShakeScreen extends StatefulWidget {
   final VoidCallback onSolved;
 
@@ -56,7 +58,7 @@ class _ShakeScreenState extends State<ShakeScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Secoue le téléphone', textAlign: TextAlign.center),
+        Text(AppLocalizations.of(context)!.shakePrompt, textAlign: TextAlign.center),
         const SizedBox(height: 24),
         SizedBox(
           width: 120,

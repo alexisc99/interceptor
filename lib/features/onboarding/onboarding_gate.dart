@@ -25,7 +25,11 @@ class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _refresh();
+    // No reload here: StatsRepository.init() (in main()) just opened these
+    // boxes fresh moments ago, so there's nothing stale to pick up yet —
+    // reloading anyway only added a pointless close/reopen of all 4 boxes
+    // in front of the very first frame, which is what made cold start slow.
+    _refresh(reload: false);
   }
 
   @override
@@ -36,13 +40,13 @@ class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refresh();
+    if (state == AppLifecycleState.resumed) _refresh(reload: true);
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({required bool reload}) async {
     // The challenge overlay writes stats from its own Flutter engine; reload
     // so this engine's Home screen reflects them as soon as we come back.
-    await StatsRepository.reload();
+    if (reload) await StatsRepository.reload();
     final results = await Future.wait([
       InterceptionChannel.isAccessibilityServiceEnabled(),
       InterceptionChannel.hasUsageAccess(),
@@ -62,7 +66,10 @@ class _OnboardingGateState extends State<OnboardingGate> with WidgetsBindingObse
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (accessibilityEnabled == false) {
-      return OnboardingScreen(hasUsageAccess: _hasUsageAccess, onRefresh: _refresh);
+      return OnboardingScreen(
+        hasUsageAccess: _hasUsageAccess,
+        onRefresh: () => _refresh(reload: true),
+      );
     }
     return const HomeScreen();
   }

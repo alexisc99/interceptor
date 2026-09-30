@@ -4,7 +4,8 @@ enum ChallengeType {
   math,
   puzzle,
   action,
-  delay;
+  delay,
+  mirror;
 
   String get storageValue => name;
 
@@ -15,25 +16,19 @@ enum ChallengeType {
     );
   }
 
-  String get label {
-    switch (this) {
-      case ChallengeType.math:
-        return 'Calcul mental';
-      case ChallengeType.puzzle:
-        return 'Casse-tête';
-      case ChallengeType.action:
-        return 'Action réelle';
-      case ChallengeType.delay:
-        return 'Délai de réflexion';
-    }
-  }
+  /// Whether this type needs a runtime permission it might not have.
+  bool get requiresCameraPermission => this == ChallengeType.mirror;
 }
 
 class TargetAppConfig {
   final String packageName;
   final String appName;
   final int graceMinutes;
-  final ChallengeType challengeType;
+
+  /// The challenge types eligible to be drawn when this app is opened. Never
+  /// empty — one is picked at random (among those the user has granted any
+  /// permission they require) each time the challenge triggers.
+  final Set<ChallengeType> challengeTypes;
 
   /// When this app was first targeted. Used as the reference point for the
   /// "time saved" comparison (usage the week before vs the weeks since).
@@ -43,18 +38,21 @@ class TargetAppConfig {
     required this.packageName,
     required this.appName,
     this.graceMinutes = 5,
-    this.challengeType = ChallengeType.math,
+    Set<ChallengeType>? challengeTypes,
     DateTime? addedAt,
-  }) : addedAt = addedAt ?? DateTime.now();
+  })  : challengeTypes = (challengeTypes == null || challengeTypes.isEmpty)
+            ? const {ChallengeType.math}
+            : challengeTypes,
+        addedAt = addedAt ?? DateTime.now();
 
   /// Note: addedAt is deliberately not editable — it always reflects when
   /// the app was first added, regardless of later config changes.
-  TargetAppConfig copyWith({int? graceMinutes, ChallengeType? challengeType}) {
+  TargetAppConfig copyWith({int? graceMinutes, Set<ChallengeType>? challengeTypes}) {
     return TargetAppConfig(
       packageName: packageName,
       appName: appName,
       graceMinutes: graceMinutes ?? this.graceMinutes,
-      challengeType: challengeType ?? this.challengeType,
+      challengeTypes: challengeTypes ?? this.challengeTypes,
       addedAt: addedAt,
     );
   }
@@ -62,7 +60,7 @@ class TargetAppConfig {
   Map<String, dynamic> toMap() => {
         'appName': appName,
         'graceMinutes': graceMinutes,
-        'challengeType': challengeType.storageValue,
+        'challengeTypes': challengeTypes.map((t) => t.storageValue).toList(),
         'addedAt': addedAt.millisecondsSinceEpoch,
       };
 
@@ -72,9 +70,22 @@ class TargetAppConfig {
       packageName: packageName,
       appName: map['appName'] as String? ?? packageName,
       graceMinutes: map['graceMinutes'] as int? ?? 5,
-      challengeType: ChallengeType.fromStorage(map['challengeType'] as String?),
+      challengeTypes: _readChallengeTypes(map),
       addedAt: addedAtMs != null ? DateTime.fromMillisecondsSinceEpoch(addedAtMs) : DateTime.now(),
     );
+  }
+
+  /// Reads the new plural `challengeTypes` list, falling back to the old
+  /// singular `challengeType` string for configs saved before multi-select
+  /// support was added.
+  static Set<ChallengeType> _readChallengeTypes(Map map) {
+    final list = map['challengeTypes'] as List?;
+    if (list != null && list.isNotEmpty) {
+      return list.map((v) => ChallengeType.fromStorage(v as String?)).toSet();
+    }
+    final legacy = map['challengeType'] as String?;
+    if (legacy != null) return {ChallengeType.fromStorage(legacy)};
+    return const {ChallengeType.math};
   }
 }
 
@@ -86,6 +97,18 @@ class AppConfigRepository {
   static const boxName = 'target_apps';
 
   static Future<void> init() => Hive.openBox(boxName);
+
+  /// Re-reads the box from disk. The challenge overlay runs in its own
+  /// Flutter engine/isolate (a separate ChallengeActivity) that can keep an
+  /// already-open Box cached in memory across triggers if the Android
+  /// process survives between them — so an edit made in the main engine
+  /// (e.g. changing an app's selected challenge types) wouldn't be picked
+  /// up there until the process happened to restart. Called at the start
+  /// of every challenge trigger instead.
+  static Future<void> reload() async {
+    if (Hive.isBoxOpen(boxName)) await Hive.box(boxName).close();
+    await Hive.openBox(boxName);
+  }
 
   Box get _box => Hive.box(boxName);
 

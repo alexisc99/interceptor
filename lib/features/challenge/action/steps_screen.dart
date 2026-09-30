@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 /// Detects footsteps from the accelerometer directly, rather than Android's
 /// native step counter sensor: that one batches updates (sometimes for a
 /// minute or more before delivering anything), which makes it unusable for
@@ -60,7 +62,7 @@ class _StepsScreenState extends State<StepsScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Fais quelques pas, téléphone en main', textAlign: TextAlign.center),
+        Text(AppLocalizations.of(context)!.stepsPrompt, textAlign: TextAlign.center),
         const SizedBox(height: 24),
         SizedBox(
           width: 120,

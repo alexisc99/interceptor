@@ -19,6 +19,13 @@ class ChallengeActivity : FlutterActivity() {
         intent.getStringExtra(Constants.EXTRA_TARGET_PACKAGE) ?: ""
     }
 
+    private var channel: MethodChannel? = null
+
+    // Set as soon as the challenge is solved or explicitly cancelled, so
+    // onUserLeaveHint (below) doesn't also count a dissuasion for a leave
+    // that was already accounted for through one of those paths.
+    private var resolved = false
+
     override fun getDartEntrypointFunctionName(): String = "challengeMain"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +37,9 @@ class ChallengeActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         Log.i(TAG, "configureFlutterEngine")
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, Constants.CHANNEL_CHALLENGE)
-            .setMethodCallHandler { call, result ->
+        val methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, Constants.CHANNEL_CHALLENGE)
+        channel = methodChannel
+        methodChannel.setMethodCallHandler { call, result ->
                 when (call.method) {
                     "getTargetPackage" -> result.success(targetPackage)
                     "getTodayUsageMinutes" -> {
@@ -51,6 +59,7 @@ class ChallengeActivity : FlutterActivity() {
     }
 
     private fun onChallengeSolved() {
+        resolved = true
         val prefs = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
         val graceMinutes = prefs.getInt(
             Constants.GRACE_MINUTES_PREFIX + targetPackage,
@@ -68,6 +77,7 @@ class ChallengeActivity : FlutterActivity() {
     }
 
     private fun onChallengeCancelled() {
+        resolved = true
         // Just finishing would reveal the target app's own (already-created)
         // window right underneath, which immediately re-triggers us. Go home
         // instead so "cancel" actually leaves the target app.
@@ -77,6 +87,36 @@ class ChallengeActivity : FlutterActivity() {
         }
         startActivity(homeIntent)
         finish()
+    }
+
+    // Called just before the activity is paused because of a user-driven
+    // action — pressing Home, switching via Recents/overview, etc. (not for
+    // rotation, not for our own startActivity/finish calls above). If the
+    // challenge was never solved or explicitly cancelled, that's someone
+    // dissuading themselves by walking away rather than tapping "Annuler" —
+    // counted the same way.
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (resolved) return
+        resolved = true
+        val methodChannel = channel
+        if (methodChannel == null) {
+            finish()
+            return
+        }
+        // Must wait for Dart to actually finish writing the stats (several
+        // sequential Hive box updates) before tearing down the engine —
+        // firing this and immediately finish()ing raced the writes and lost
+        // some of them.
+        methodChannel.invokeMethod(
+            "onUserLeftWithoutSolving",
+            null,
+            object : MethodChannel.Result {
+                override fun success(result: Any?) = finish()
+                override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) = finish()
+                override fun notImplemented() = finish()
+            },
+        )
     }
 
     // Prevent trivially bypassing the challenge with the system back gesture/button.

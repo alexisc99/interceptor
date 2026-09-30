@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 enum _SimonPhase { preparing, playback, input, wrong }
 
 class SimonScreen extends StatefulWidget {
@@ -84,16 +86,17 @@ class _SimonScreenState extends State<SimonScreen> {
     }
   }
 
-  String get _statusText {
+  String _statusText(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (_phase) {
       case _SimonPhase.preparing:
-        return 'Prépare-toi, observe bien...';
+        return l10n.simonPreparing;
       case _SimonPhase.playback:
-        return 'Regarde la séquence...';
+        return l10n.simonPlayback;
       case _SimonPhase.input:
-        return 'Reproduis la séquence ($_inputIndex/${_sequence.length})';
+        return l10n.simonInput(_inputIndex, _sequence.length);
       case _SimonPhase.wrong:
-        return 'Raté, nouvelle séquence...';
+        return l10n.simonWrong;
     }
   }
 
@@ -102,7 +105,7 @@ class _SimonScreenState extends State<SimonScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(_statusText, textAlign: TextAlign.center),
+        Text(_statusText(context), textAlign: TextAlign.center),
         const SizedBox(height: 24),
         GridView.count(
           shrinkWrap: true,

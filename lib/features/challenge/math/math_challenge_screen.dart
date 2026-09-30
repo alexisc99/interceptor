@@ -4,13 +4,20 @@ import 'package:flutter/material.dart';
 
 import '../../../core/storage/app_config_repository.dart';
 import '../../../core/storage/stats_repository.dart';
+import '../../../l10n/app_localizations.dart';
 import '../challenge_scaffold.dart';
 
 class MathChallengeScreen extends StatefulWidget {
   final TargetAppConfig appConfig;
+  final ChallengeType resolvedType;
   final int? usageMinutesToday;
 
-  const MathChallengeScreen({super.key, required this.appConfig, required this.usageMinutesToday});
+  const MathChallengeScreen({
+    super.key,
+    required this.appConfig,
+    required this.resolvedType,
+    required this.usageMinutesToday,
+  });
 
   @override
   State<MathChallengeScreen> createState() => _MathChallengeScreenState();
@@ -50,7 +57,7 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
   Future<void> _submit() async {
     final answer = int.tryParse(_controller.text.trim());
     if (answer == _expected) {
-      await _stats.incrementSolved(widget.appConfig.packageName);
+      await _stats.recordSolved(widget.appConfig.packageName, widget.resolvedType);
       setState(() => _solved = true);
     } else {
       setState(() {
@@ -68,20 +75,19 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ChallengeScaffold(
       icon: Icons.lock_clock,
       packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
+      resolvedType: widget.resolvedType,
       usageMinutesToday: widget.usageMinutesToday,
       solved: _solved,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Résous ce petit calcul pour continuer, histoire de faire ce choix en conscience.',
-            textAlign: TextAlign.center,
-          ),
+          Text(l10n.mathPrompt, textAlign: TextAlign.center),
           const SizedBox(height: 32),
           Text(
             '$_a $_operator $_b = ?',
@@ -97,12 +103,12 @@ class _MathChallengeScreenState extends State<MathChallengeScreen> {
             style: Theme.of(context).textTheme.headlineSmall,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              errorText: _wasWrong ? 'Pas tout à fait, réessaie.' : null,
+              errorText: _wasWrong ? l10n.mathWrongAnswer : null,
             ),
             onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _submit, child: const Text('Valider')),
+          FilledButton(onPressed: _submit, child: Text(l10n.validateLabel)),
         ],
       ),
     );

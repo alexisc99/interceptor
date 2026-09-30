@@ -10,9 +10,15 @@ import 'simon_screen.dart';
 
 class PuzzleChallengeScreen extends StatefulWidget {
   final TargetAppConfig appConfig;
+  final ChallengeType resolvedType;
   final int? usageMinutesToday;
 
-  const PuzzleChallengeScreen({super.key, required this.appConfig, required this.usageMinutesToday});
+  const PuzzleChallengeScreen({
+    super.key,
+    required this.appConfig,
+    required this.resolvedType,
+    required this.usageMinutesToday,
+  });
 
   @override
   State<PuzzleChallengeScreen> createState() => _PuzzleChallengeScreenState();
@@ -23,7 +29,7 @@ class _PuzzleChallengeScreenState extends State<PuzzleChallengeScreen> {
   bool _solved = false;
 
   Future<void> _onSolved() async {
-    await StatsRepository().incrementSolved(widget.appConfig.packageName);
+    await StatsRepository().recordSolved(widget.appConfig.packageName, widget.resolvedType);
     setState(() => _solved = true);
   }
 
@@ -33,6 +39,7 @@ class _PuzzleChallengeScreenState extends State<PuzzleChallengeScreen> {
       icon: Icons.extension,
       packageName: widget.appConfig.packageName,
       appName: widget.appConfig.appName,
+      resolvedType: widget.resolvedType,
       usageMinutesToday: widget.usageMinutesToday,
       solved: _solved,
       child: _useSchulte ? SchulteGridScreen(onSolved: _onSolved) : SimonScreen(onSolved: _onSolved),

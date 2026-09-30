@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/platform/interception_channel.dart';
 import '../../core/storage/app_config_repository.dart';
 import '../../core/storage/stats_repository.dart';
+import '../../l10n/app_localizations.dart';
+import '../challenge/challenge_type_l10n.dart';
 
 class AppConfigScreen extends StatefulWidget {
   final TargetAppConfig config;
@@ -16,34 +19,71 @@ class AppConfigScreen extends StatefulWidget {
 class _AppConfigScreenState extends State<AppConfigScreen> {
   final _repository = AppConfigRepository();
   late int _graceMinutes = widget.config.graceMinutes;
-  late ChallengeType _challengeType = widget.config.challengeType;
+  final Set<ChallengeType> _selectedTypes = {};
 
-  void _onChallengeTypeChanged(ChallengeType? value) {
-    if (value == null) return;
-    setState(() => _challengeType = value);
+  @override
+  void initState() {
+    super.initState();
+    _selectedTypes.addAll(widget.config.challengeTypes);
+  }
 
-    // A gentle nudge rather than a hard restriction (e.g. a 24h cooldown):
-    // the point is to catch someone about to swap to the easiest challenge
-    // in the heat of the moment, without adding real friction to a
-    // legitimate change (not everyone can shake their phone in public, etc).
-    if (value != widget.config.challengeType) {
+  Future<void> _onChallengeTypeToggled(ChallengeType type, bool? checked) async {
+    if (checked == true) {
+      if (type.requiresCameraPermission) {
+        final granted = await _ensureCameraPermission();
+        if (!granted) return;
+      }
+      if (mounted) setState(() => _selectedTypes.add(type));
+      return;
+    }
+
+    if (_selectedTypes.length <= 1) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Rappel : le but est de te freiner, pas de choisir le défi "
-            "le plus facile à expédier.",
-          ),
-          duration: Duration(seconds: 4),
-        ),
+        SnackBar(content: Text(AppLocalizations.of(context)!.minOneChallengeRequired)),
       );
+      return;
     }
+
+    setState(() => _selectedTypes.remove(type));
+
+    // A gentle nudge rather than a hard restriction (e.g. a 24h cooldown):
+    // the point is to catch someone about to narrow down to the easiest
+    // challenge in the heat of the moment, without adding real friction to
+    // a legitimate change (not everyone can shake their phone in public,
+    // etc). Only unchecking (narrowing the pool) triggers it — adding more
+    // eligible challenges doesn't weaken the setup.
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.narrowingReminder),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  /// Requests camera access if not already granted. Returns whether the
+  /// type can be selected — false leaves the checkbox unchecked.
+  Future<bool> _ensureCameraPermission() async {
+    var status = await Permission.camera.status;
+    if (status.isGranted) return true;
+
+    status = await Permission.camera.request();
+    if (status.isGranted) return true;
+
+    if (!mounted) return false;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.mirrorNeedsCameraPermission)),
+    );
+    return false;
   }
 
   Future<void> _save() async {
     final updated = widget.config.copyWith(
       graceMinutes: _graceMinutes,
-      challengeType: _challengeType,
+      challengeTypes: _selectedTypes,
     );
     await _repository.upsert(updated);
     await InterceptionChannel.setGraceMinutes(
@@ -55,6 +95,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
 
   Future<void> _delete() async {
     await _repository.remove(widget.config.packageName);
+    await StatsRepository().clearBeforeInstallBaseline(widget.config.packageName);
     final remaining = _repository.getAll().map((c) => c.packageName);
     await InterceptionChannel.setTargetPackages(remaining);
     if (mounted) Navigator.of(context).pop();
@@ -62,6 +103,7 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(widget.config.appName)),
       body: SafeArea(
@@ -69,67 +111,51 @@ class _AppConfigScreenState extends State<AppConfigScreen> {
           padding: const EdgeInsets.all(24),
           children: [
             _StatsSummary(packageName: widget.config.packageName),
-            const SizedBox(height: 12),
-            _UsageComparisonCard(config: widget.config),
             const SizedBox(height: 24),
-            const Text('Défi', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(l10n.possibleChallengesTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(
+              l10n.possibleChallengesSubtitle,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
-            RadioGroup<ChallengeType>(
-              groupValue: _challengeType,
-              onChanged: _onChallengeTypeChanged,
-              child: Column(
-                children: ChallengeType.values
-                    .map(
-                      (type) => RadioListTile<ChallengeType>(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(type.label),
-                        subtitle: Text(_descriptionFor(type)),
-                        value: type,
-                      ),
-                    )
-                    .toList(),
-              ),
+            Column(
+              children: ChallengeType.values
+                  .map(
+                    (type) => CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(type.label(context)),
+                      subtitle: Text(type.description(context)),
+                      value: _selectedTypes.contains(type),
+                      onChanged: (checked) => _onChallengeTypeToggled(type, checked),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Durée de grâce après un défi résolu',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text('$_graceMinutes minutes'),
+            Text(l10n.graceDurationTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(l10n.graceMinutesValue(_graceMinutes)),
             Slider(
               value: _graceMinutes.toDouble(),
               min: 1,
               max: 60,
               divisions: 59,
-              label: '$_graceMinutes min',
+              label: l10n.graceMinutesShort(_graceMinutes),
               onChanged: (value) =>
                   setState(() => _graceMinutes = value.round()),
             ),
             const SizedBox(height: 24),
-            FilledButton(onPressed: _save, child: const Text('Enregistrer')),
+            FilledButton(onPressed: _save, child: Text(l10n.saveButton)),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: _delete,
               style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Retirer cette app'),
+              child: Text(l10n.removeAppButton),
             ),
           ],
         ),
       ),
     );
-  }
-
-  String _descriptionFor(ChallengeType type) {
-    switch (type) {
-      case ChallengeType.math:
-        return 'Résoudre une opération simple';
-      case ChallengeType.puzzle:
-        return 'Grille de Schulte ou Simon, au hasard';
-      case ChallengeType.action:
-        return 'Compter des pas ou secouer le téléphone, au hasard';
-      case ChallengeType.delay:
-        return 'Un temps de réflexion avant de continuer';
-    }
   }
 }
 
@@ -140,14 +166,15 @@ class _StatsSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final stats = StatsRepository().forPackage(packageName);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _Stat(label: 'Affichés', value: stats.triggered),
-        _Stat(label: 'Résolus', value: stats.solved),
+        _Stat(label: l10n.statShownLabel, value: stats.triggered),
+        _Stat(label: l10n.statSolvedLabel, value: stats.solved),
         _Stat(
-          label: 'Dissuasions',
+          label: l10n.statCancelled,
           value: stats.cancelled,
           color: Colors.green,
         ),
@@ -175,124 +202,5 @@ class _Stat extends StatelessWidget {
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
-  }
-}
-
-/// Compares average daily usage the week before this app was targeted to
-/// average daily usage since, to give a concrete "time saved" figure.
-/// Requires the usage-access permission; silently omitted without it.
-class _UsageComparisonCard extends StatefulWidget {
-  final TargetAppConfig config;
-
-  const _UsageComparisonCard({required this.config});
-
-  @override
-  State<_UsageComparisonCard> createState() => _UsageComparisonCardState();
-}
-
-class _UsageComparisonCardState extends State<_UsageComparisonCard> {
-  bool _loading = true;
-  bool _hasAccess = false;
-  int? _beforePerDayMinutes;
-  int? _afterPerDayMinutes;
-  int _daysSinceAdded = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final hasAccess = await InterceptionChannel.hasUsageAccess();
-    if (!hasAccess) {
-      if (mounted) setState(() => _loading = false);
-      return;
-    }
-
-    final addedAt = widget.config.addedAt;
-    final now = DateTime.now();
-    final daysSinceAdded = now.difference(addedAt).inHours / 24;
-
-    final beforeMinutes = await InterceptionChannel.getUsageMinutesInRange(
-      widget.config.packageName,
-      addedAt.subtract(const Duration(days: 7)),
-      addedAt,
-    );
-    final afterMinutes = daysSinceAdded >= 1
-        ? await InterceptionChannel.getUsageMinutesInRange(
-            widget.config.packageName,
-            addedAt,
-            now,
-          )
-        : null;
-
-    if (!mounted) return;
-    setState(() {
-      _hasAccess = true;
-      _beforePerDayMinutes = beforeMinutes == null
-          ? null
-          : (beforeMinutes / 7).round();
-      _afterPerDayMinutes = (afterMinutes != null && daysSinceAdded >= 1)
-          ? (afterMinutes / daysSinceAdded).round()
-          : null;
-      _daysSinceAdded = daysSinceAdded.floor();
-      _loading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading || !_hasAccess) return const SizedBox.shrink();
-
-    final before = _beforePerDayMinutes;
-    final after = _afterPerDayMinutes;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Temps passé par jour',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            if (before == null)
-              const Text(
-                "Pas de données pour la semaine avant l'ajout de cette app.",
-              )
-            else if (after == null)
-              Text(
-                'Avant Interceptor : ${_format(before)}/jour\n'
-                "Pas encore assez de recul depuis l'ajout (${_daysSinceAdded}j) pour comparer.",
-              )
-            else ...[
-              Text('Avant Interceptor : ${_format(before)}/jour'),
-              Text('Depuis ($_daysSinceAdded j) : ${_format(after)}/jour'),
-              const SizedBox(height: 4),
-              Text(
-                before > after
-                    ? 'Temps gagné : ${_format(before - after)}/jour'
-                    : 'Pas de gain mesurable pour l\'instant',
-                style: TextStyle(
-                  color: before > after ? Colors.green : null,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  static String _format(int minutes) {
-    final hours = minutes ~/ 60;
-    final mins = minutes % 60;
-    if (hours == 0) return '$mins min';
-    return '${hours}h${mins.toString().padLeft(2, '0')}';
   }
 }

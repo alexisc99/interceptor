@@ -17,6 +17,7 @@ class ForegroundAppWatcherService : AccessibilityService() {
 
     private lateinit var prefs: SharedPreferences
     private val recentlyTriggered = mutableMapOf<String, Long>()
+    private var lastForegroundPackage: String? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -29,6 +30,22 @@ class ForegroundAppWatcherService : AccessibilityService() {
         val packageName = event.packageName?.toString() ?: return
         Log.d(TAG, "Window state changed: $packageName")
         if (packageName == applicationContext.packageName) return
+        if (TransientForegroundPackages.isTransient(applicationContext, packageName)) return
+
+        // Apps like Instagram fire more TYPE_WINDOW_STATE_CHANGED events for
+        // their own internal navigation (opening a comments sheet, a new
+        // tab, ...) without ever actually leaving the app. Only re-evaluate
+        // the grace period on a genuine switch into a different foreground
+        // app — otherwise a long session past the grace window gets
+        // re-challenged on the next in-app navigation despite never having
+        // left.
+        val previousPackage = lastForegroundPackage
+        lastForegroundPackage = packageName
+        if (packageName == previousPackage) {
+            Log.d(TAG, "Still in $packageName, skipping re-evaluation")
+            return
+        }
+
         handleForegroundApp(packageName)
     }
 
@@ -46,7 +63,13 @@ class ForegroundAppWatcherService : AccessibilityService() {
 
         val lastTrigger = recentlyTriggered[packageName] ?: 0L
         if (now - lastTrigger < Constants.RETRIGGER_DEBOUNCE_MS) {
-            Log.i(TAG, "Debounced trigger for $packageName, skipping")
+            // Don't re-launch ChallengeActivity (it would stack/flicker on
+            // top of the one that likely just finished), but don't just
+            // leave the target app sitting on screen either — that let
+            // someone bypass the challenge entirely by reopening the app
+            // fast enough to land inside this window. Send it home instead.
+            Log.i(TAG, "Debounced trigger for $packageName, sending home instead of re-showing the challenge")
+            performGlobalAction(GLOBAL_ACTION_HOME)
             return
         }
         recentlyTriggered[packageName] = now

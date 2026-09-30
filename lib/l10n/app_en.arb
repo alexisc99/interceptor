@@ -1,0 +1,167 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Interceptor",
+
+  "activateLabel": "Enable",
+  "activatedLabel": "Enabled",
+  "continueLabel": "Continue",
+  "validateLabel": "Done",
+  "requiredLabel": "required",
+  "viewLabel": "View",
+  "dismissLabel": "Dismiss",
+
+  "statsEntryLabel": "Advanced stats",
+  "premiumLockedTitle": "Advanced stats",
+  "premiumLockedDescription": "Unlock detailed stats: time saved compared to before Interceptor, time saved compared to the previous period, deterrence by app and by challenge type, and an estimate of time saved based on your deterrences.",
+  "premiumDebugToggleLabel": "Premium enabled (test — until real payment is wired up)",
+  "unlockTeaserTitle": "Discover your time saved",
+  "unlockButton": "Unlock statistics",
+  "periodDay": "Day",
+  "periodWeek": "Week",
+  "periodMonth": "Month",
+  "periodYear": "Year",
+  "resetStatsButton": "Reset statistics",
+  "resetStatsConfirmTitle": "Reset statistics?",
+  "resetStatsConfirmBody": "Every counter (challenges, deterrences, daily history, comparison baselines) will go back to zero. Your targeted apps and their chosen challenges aren't affected. This can't be undone.",
+  "resetStatsConfirmAction": "Reset",
+  "cancelLabel": "Cancel",
+  "statVsBeforeInstall": "Time saved vs before Interceptor",
+  "statVsPreviousDay": "Time saved vs yesterday",
+  "statVsPreviousWeek": "Time saved vs last week",
+  "statVsPreviousMonth": "Time saved vs last month",
+  "statVsPreviousYear": "Time saved vs last year",
+  "statEstimate": "Estimated time saved (deterrences)",
+  "dissuasionByAppTitle": "Deterrence by app",
+  "noDataForPeriod": "No data for this period.",
+  "statsLoadErrorText": "Couldn't load, try again.",
+  "retryLabel": "Retry",
+  "vsPreviousPeriodIncompleteNote": "History still building up — this number is a partial (understated) estimate.",
+  "vsBeforeInstallIncompleteNote": "Unavailable for at least one app added more than a week ago — that window can no longer be recovered.",
+  "perAppDetailTitle": "Detail by app",
+  "notAvailableLabel": "Not available",
+  "weeklyRecapBannerText": "Your weekly recap is ready!",
+  "weeklyRecapOptOut": "Stop showing this reminder every week",
+
+  "onboardingTitle": "Take back control of your apps",
+  "onboardingIntro": "Interceptor inserts a small challenge before opening the apps you choose, to break the reflex of opening them automatically. Two Android settings are needed — they're one tap away, and you'll come back here automatically afterwards.",
+  "onboardingContinueButton": "I've enabled it, continue",
+  "a11yCardTitle": "Accessibility service",
+  "a11yCardDescription": "Required: lets the app detect which app you're opening.",
+  "a11yStep1": "Look for \"Interceptor\" in the list (sometimes under \"Installed apps\" or \"Downloaded services\")",
+  "a11yStep2": "Open it and turn on the switch at the top",
+  "a11yStep3": "Confirm by tapping \"Allow\" in the dialog that appears",
+  "a11yStep4": "Come back here with the back arrow — it's automatic, nothing to type",
+  "usageAccessCardTitle": "Usage access",
+  "usageAccessCardDescription": "Optional: shows how much time you've spent on each app during challenges.",
+  "usageAccessStep1": "Look for \"Interceptor\" in the app list",
+  "usageAccessStep2": "Turn on the switch next to its name",
+
+  "addAppButton": "Add an app",
+  "usageAccessBanner": "Enable usage access to show how much time you've spent on each app during challenges.",
+  "statTriggered": "Challenges shown",
+  "statSolved": "Challenges solved",
+  "statCancelled": "Deterred",
+  "typeBreakdownTitle": "Deterrence by challenge type",
+  "typeBreakdownLine": "{label}: {rate}% ({count} {count, plural, =1{trigger} other{triggers}})",
+  "@typeBreakdownLine": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "rate": { "type": "int" },
+      "count": { "type": "int" }
+    }
+  },
+  "homeAppSubtitle": "{count, plural, =1{Challenge} other{Challenges}}: {types} · {grace} min grace",
+  "@homeAppSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "types": { "type": "String" },
+      "grace": { "type": "int" }
+    }
+  },
+  "emptyStateMessage": "No app being watched yet.\nAdd an app to assign it a challenge.",
+
+  "pickerTitle": "Choose apps",
+
+  "minOneChallengeRequired": "At least one challenge must stay selected.",
+  "narrowingReminder": "Reminder: the goal is to slow you down, not to narrow the possible challenges down to the easiest one to breeze through.",
+  "mirrorNeedsCameraPermission": "The Mirror challenge needs camera access to be enabled.",
+  "possibleChallengesTitle": "Possible challenges",
+  "possibleChallengesSubtitle": "Each time it triggers, one of the checked challenges is drawn at random.",
+  "graceDurationTitle": "Grace period after a solved challenge",
+  "graceMinutesValue": "{minutes} {minutes, plural, =1{minute} other{minutes}}",
+  "@graceMinutesValue": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "graceMinutesShort": "{minutes} min",
+  "@graceMinutesShort": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "saveButton": "Save",
+  "removeAppButton": "Remove this app",
+  "statShownLabel": "Shown",
+  "statSolvedLabel": "Solved",
+
+  "challengeTypeMath": "Mental math",
+  "challengeTypePuzzle": "Puzzle",
+  "challengeTypeAction": "Real action",
+  "challengeTypeDelay": "Reflection delay",
+  "challengeTypeMirror": "Mirror",
+  "challengeDescMath": "Solve a simple calculation",
+  "challengeDescPuzzle": "Schulte grid or Simon, at random",
+  "challengeDescAction": "Count steps or shake your phone, at random",
+  "challengeDescDelay": "A moment of reflection before continuing",
+  "challengeDescMirror": "Face to face with the person responsible for your smartphone addiction! (camera required)",
+
+  "challengeSolvedTitle": "Challenge solved!",
+  "tryingToOpen": "You're trying to open {appName}",
+  "@tryingToOpen": {
+    "placeholders": { "appName": { "type": "String" } }
+  },
+  "usageTodayLine": "Usage today: {duration}",
+  "@usageTodayLine": {
+    "placeholders": { "duration": { "type": "String" } }
+  },
+  "openAppButton": "Open {appName}",
+  "@openAppButton": {
+    "placeholders": { "appName": { "type": "String" } }
+  },
+  "cancelChallengeButton": "Cancel and stay here",
+
+  "mathPrompt": "Solve this quick calculation to continue, so this choice is a conscious one.",
+  "mathWrongAnswer": "Not quite, try again.",
+
+  "schultePrompt": "Tap the numbers in order, from 1 to {gridSize}",
+  "@schultePrompt": {
+    "placeholders": { "gridSize": { "type": "int" } }
+  },
+
+  "simonPreparing": "Get ready, watch closely...",
+  "simonPlayback": "Watch the sequence...",
+  "simonInput": "Repeat the sequence ({current}/{total})",
+  "@simonInput": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "simonWrong": "Wrong, new sequence...",
+
+  "shakePrompt": "Shake your phone",
+  "stepsPrompt": "Take a few steps, phone in hand",
+
+  "delayQuestion1": "Why do you want to open this app right now?",
+  "delayQuestion2": "What are you hoping to find there?",
+  "delayQuestion3": "Could this wait a few minutes?",
+  "delayQuestion4": "What were you doing before this?",
+  "continueWithCountdown": "Continue ({remaining})",
+  "@continueWithCountdown": {
+    "placeholders": { "remaining": { "type": "int" } }
+  },
+
+  "mirrorPunchline1": "Did you see yourself scrolling?",
+  "mirrorPunchline2": "That face, to open this?",
+  "mirrorPunchline3": "Take a good look before diving back in.",
+  "mirrorPunchline4": "Is this really the moment?",
+  "mirrorCameraUnavailable": "Camera unavailable for this challenge."
+}

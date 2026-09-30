@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 class SchulteGridScreen extends StatefulWidget {
   final VoidCallback onSolved;
 
@@ -34,7 +36,10 @@ class _SchulteGridScreenState extends State<SchulteGridScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Touche les nombres dans l\'ordre, de 1 à $_gridSize', textAlign: TextAlign.center),
+        Text(
+          AppLocalizations.of(context)!.schultePrompt(_gridSize),
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 24),
         GridView.count(
           shrinkWrap: true,

@@ -3,6 +3,10 @@
     <!-- Special permission, granted via Settings (ACTION_USAGE_ACCESS_SETTINGS), not a runtime prompt. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <!-- Runtime-prompted, only for the "Miroir" challenge type. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <application
         android:label="Interceptor"
         android:name="${applicationName}"
@@ -35,6 +39,7 @@
             android:launchMode="singleTask"
             android:taskAffinity=""
             android:excludeFromRecents="true"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:theme="@style/LaunchTheme" />
 
         <service

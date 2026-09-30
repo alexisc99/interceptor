@@ -45,4 +45,15 @@ class InterceptionChannel {
       'end': end.millisecondsSinceEpoch,
     });
   }
+
+  /// Average minutes per individual session for [packageName] within
+  /// [start, end), or null without usage access or without any complete
+  /// session in range.
+  static Future<double?> getAverageSessionMinutes(String packageName, DateTime start, DateTime end) {
+    return _channel.invokeMethod<double>('getAverageSessionMinutes', {
+      'package': packageName,
+      'start': start.millisecondsSinceEpoch,
+      'end': end.millisecondsSinceEpoch,
+    });
+  }
 }

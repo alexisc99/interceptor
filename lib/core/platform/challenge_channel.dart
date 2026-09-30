@@ -25,4 +25,17 @@ class ChallengeChannel {
   static Future<void> onChallengeCancelled() {
     return _channel.invokeMethod('onChallengeCancelled');
   }
+
+  /// Registers [callback] for the native side's "onUserLeftWithoutSolving"
+  /// notification — fired when the user leaves via Home/Recents instead of
+  /// the in-app cancel button (native still finishes the activity either
+  /// way; this is purely so the attempt still gets recorded as a
+  /// dissuasion).
+  static void setOnUserLeftWithoutSolving(Future<void> Function() callback) {
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'onUserLeftWithoutSolving') {
+        await callback();
+      }
+    });
+  }
 }

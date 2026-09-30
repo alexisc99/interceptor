@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/platform/interception_channel.dart';
+import '../../l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final bool hasUsageAccess;
@@ -14,6 +15,7 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -27,51 +29,43 @@ class OnboardingScreen extends StatelessWidget {
                     const Icon(Icons.shield_outlined, size: 64),
                     const SizedBox(height: 20),
                     Text(
-                      'Reprends la main sur tes apps',
+                      l10n.onboardingTitle,
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Interceptor insère un petit défi avant l'ouverture des apps que tu choisis, "
-                      "pour casser le réflexe d'ouverture automatique. Deux réglages Android sont "
-                      "nécessaires — ils s'activent en un tap, tu reviens automatiquement ici après.",
-                      textAlign: TextAlign.center,
-                    ),
+                    Text(l10n.onboardingIntro, textAlign: TextAlign.center),
                     const SizedBox(height: 32),
                     _PermissionCard(
                       icon: Icons.accessibility_new,
-                      title: "Service d'accessibilité",
-                      description: 'Indispensable : permet de détecter quelle app tu lances.',
+                      title: l10n.a11yCardTitle,
+                      description: l10n.a11yCardDescription,
                       required: true,
                       granted: false,
-                      buttonLabel: 'Activer',
+                      buttonLabel: l10n.activateLabel,
                       onPressed: () =>
                           InterceptionChannel.openAccessibilitySettings(),
-                      steps: const [
-                        'Cherche "Interceptor" dans la liste (parfois sous "Applications installées" ou "Services téléchargés")',
-                        'Ouvre-le et active l\'interrupteur en haut',
-                        'Confirme en appuyant sur "Autoriser" dans la fenêtre qui apparaît',
-                        'Reviens ici avec la flèche retour — c\'est automatique, pas besoin de rien taper',
+                      steps: [
+                        l10n.a11yStep1,
+                        l10n.a11yStep2,
+                        l10n.a11yStep3,
+                        l10n.a11yStep4,
                       ],
                     ),
                     const SizedBox(height: 12),
                     _PermissionCard(
                       icon: Icons.bar_chart,
-                      title: "Accès à l'utilisation",
-                      description: 'Optionnel : affiche ton temps passé sur chaque app pendant les défis.',
+                      title: l10n.usageAccessCardTitle,
+                      description: l10n.usageAccessCardDescription,
                       required: false,
                       granted: hasUsageAccess,
-                      buttonLabel: hasUsageAccess ? 'Activé' : 'Activer',
+                      buttonLabel: hasUsageAccess ? l10n.activatedLabel : l10n.activateLabel,
                       onPressed: hasUsageAccess
                           ? null
                           : () => InterceptionChannel.openUsageAccessSettings(),
                       steps: hasUsageAccess
                           ? null
-                          : const [
-                              'Cherche "Interceptor" dans la liste des apps',
-                              'Active l\'interrupteur à côté de son nom',
-                            ],
+                          : [l10n.usageAccessStep1, l10n.usageAccessStep2],
                     ),
                   ],
                 ),
@@ -81,7 +75,7 @@ class OnboardingScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               child: FilledButton(
                 onPressed: onRefresh,
-                child: const Text("J'ai activé, continuer"),
+                child: Text(l10n.onboardingContinueButton),
               ),
             ),
           ],
@@ -139,7 +133,7 @@ class _PermissionCard extends StatelessWidget {
                       if (required) ...[
                         const SizedBox(width: 6),
                         Text(
-                          'requis',
+                          AppLocalizations.of(context)!.requiredLabel,
                           style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.error,

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">Interceptor watches which app comes to the foreground so it can show a challenge before opening the apps you\'ve chosen to monitor. No data is ever sent outside your phone.</string>
+</resources>
